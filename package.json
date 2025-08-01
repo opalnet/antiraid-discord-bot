@@ -9,10 +9,10 @@
     "init-db": "node scripts/init-db.js"
   },
   "keywords": [],
-  "author": "Opal Network",
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ai-sdk/openai": "^0.1.1",
+    "@ai-sdk/openai": "^0.0.1",
     "@neondatabase/serverless": "^0.9.0",
     "ai": "^3.2.33",
     "discord.js": "^14.15.3",
