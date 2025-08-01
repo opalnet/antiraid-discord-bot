@@ -1,5 +1,10 @@
-import { generateText, openai } from "ai" // CORRECTED: Import openai directly from 'ai'
+import OpenAI from "openai" // CORRECTED: Import the official OpenAI client
 import { sql } from "./db.js"
+
+// Initialize the OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 const WARNING_THRESHOLD_GUILD = 3 // Warnings before kick in a single guild
 const WARNING_THRESHOLD_GLOBAL = 5 // Warnings before global ban and criminal status
@@ -11,18 +16,25 @@ const WARNING_THRESHOLD_GLOBAL = 5 // Warnings before global ban and criminal st
  */
 async function detectViolation(messageContent) {
   try {
-    const { text } = await generateText({
-      model: openai("gpt-4o"), // Using gpt-4o for moderation
-      prompt: `Analyze the following message for rude, offensive, hateful content, or content that violates Discord's Terms of Service. Respond with 'VIOLATION' if it's problematic, or 'SAFE' if it's clean. Provide a brief reason if it's a violation.
-      
-      Message: "${messageContent}"
-      
-      Example Output for Violation: VIOLATION: Contains hate speech.
-      Example Output for Safe: SAFE`,
+    // Use the official OpenAI chat completions API
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // Using gpt-4o for moderation
+      messages: [
+        {
+          role: "system",
+          content: `Analyze the following message for rude, offensive, hateful content, or content that violates Discord's Terms of Service. Respond with 'VIOLATION' if it's problematic, or 'SAFE' if it's clean. Provide a brief reason if it's a violation.`,
+        },
+        {
+          role: "user",
+          content: `Message: "${messageContent}"\n\nExample Output for Violation: VIOLATION: Contains hate speech.\nExample Output for Safe: SAFE`,
+        },
+      ],
+      max_tokens: 100, // Limit response length
     })
 
-    console.log(`AI Moderation Result: ${text}`)
-    return text.startsWith("VIOLATION")
+    const aiResponse = completion.choices[0].message.content.trim()
+    console.log(`AI Moderation Result: ${aiResponse}`)
+    return aiResponse.startsWith("VIOLATION")
   } catch (error) {
     console.error("Error during AI moderation:", error)
     // Default to safe if AI service fails to prevent false positives
