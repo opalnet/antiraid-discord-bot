@@ -1,5 +1,4 @@
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { generateText, openai } from "ai" // CORRECTED: Import openai directly from 'ai'
 import { sql } from "./db.js"
 
 const WARNING_THRESHOLD_GUILD = 3 // Warnings before kick in a single guild
