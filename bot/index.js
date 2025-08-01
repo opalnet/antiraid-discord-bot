@@ -5,7 +5,7 @@ import "dotenv/config" // Load environment variables from .env file
 
 // Event Handlers
 import { handleGuildMemberAdd } from "./events/guildMemberAdd.js"
-import { handleMessageCreate } from "./events/messageCreate.js"
+import { handleMessageCreate } from "./events/messageCreate.js" // Updated to handle prefix commands and keyword detection
 
 const client = new Client({
   intents: [
@@ -17,8 +17,8 @@ const client = new Client({
 })
 
 client.commands = new Collection()
-const commands = []
-const commandsPath = join(process.cwd(), "bot", "commands") // Adjust path for Next.js structure
+const slashCommands = []
+const commandsPath = join(process.cwd(), "bot", "commands")
 const commandFiles = readdirSync(commandsPath).filter((file) => file.endsWith(".js"))
 
 for (const file of commandFiles) {
@@ -26,7 +26,7 @@ for (const file of commandFiles) {
   const command = await import(filePath)
   if ("data" in command && "execute" in command) {
     client.commands.set(command.data.name, command)
-    commands.push(command.data.toJSON())
+    slashCommands.push(command.data.toJSON())
   } else {
     console.warn(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`)
   }
@@ -35,17 +35,13 @@ for (const file of commandFiles) {
 client.once("ready", async () => {
   console.log(`Opal is online! Logged in as ${client.user.tag}`)
 
-  // Register slash commands globally (or per guild for testing)
+  // Register slash commands globally
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_BOT_TOKEN)
 
   try {
-    console.log(`Started refreshing ${commands.length} application (/) commands.`)
+    console.log(`Started refreshing ${slashCommands.length} application (/) commands.`)
 
-    // The put method is used to fully refresh all commands in the guild with the current set
-    const data = await rest.put(
-      Routes.applicationCommands(client.user.id), // Use applicationCommands for global commands
-      { body: commands },
-    )
+    const data = await rest.put(Routes.applicationCommands(client.user.id), { body: slashCommands })
 
     console.log(`Successfully reloaded ${data.length} application (/) commands.`)
   } catch (error) {
@@ -77,7 +73,7 @@ client.on("interactionCreate", async (interaction) => {
 
 // Register event listeners
 client.on("guildMemberAdd", handleGuildMemberAdd)
-client.on("messageCreate", handleMessageCreate)
+client.on("messageCreate", handleMessageCreate) // This now handles both keyword detection and prefix commands
 
 // Log in to Discord with your client's token
 client.login(process.env.DISCORD_BOT_TOKEN)

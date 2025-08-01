@@ -1,46 +1,8 @@
-import OpenAI from "openai" // CORRECTED: Import the official OpenAI client
+// This file now only contains the action functions, detection logic is moved.
 import { sql } from "./db.js"
-
-// Initialize the OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
 
 const WARNING_THRESHOLD_GUILD = 3 // Warnings before kick in a single guild
 const WARNING_THRESHOLD_GLOBAL = 5 // Warnings before global ban and criminal status
-
-/**
- * Analyzes message content for violations using AI.
- * @param {string} messageContent
- * @returns {Promise<boolean>} True if violation detected, false otherwise.
- */
-async function detectViolation(messageContent) {
-  try {
-    // Use the official OpenAI chat completions API
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // Using gpt-4o for moderation
-      messages: [
-        {
-          role: "system",
-          content: `Analyze the following message for rude, offensive, hateful content, or content that violates Discord's Terms of Service. Respond with 'VIOLATION' if it's problematic, or 'SAFE' if it's clean. Provide a brief reason if it's a violation.`,
-        },
-        {
-          role: "user",
-          content: `Message: "${messageContent}"\n\nExample Output for Violation: VIOLATION: Contains hate speech.\nExample Output for Safe: SAFE`,
-        },
-      ],
-      max_tokens: 100, // Limit response length
-    })
-
-    const aiResponse = completion.choices[0].message.content.trim()
-    console.log(`AI Moderation Result: ${aiResponse}`)
-    return aiResponse.startsWith("VIOLATION")
-  } catch (error) {
-    console.error("Error during AI moderation:", error)
-    // Default to safe if AI service fails to prevent false positives
-    return false
-  }
-}
 
 /**
  * Issues a warning to a user.
@@ -163,4 +125,4 @@ async function banUser(member, channel, reason) {
   }
 }
 
-export { detectViolation, issueWarning, kickUser, banUser }
+export { issueWarning, kickUser, banUser }
