@@ -9,7 +9,7 @@
     "init-db": "node scripts/init-db.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Opal Network",
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/openai": "^0.0.1",
@@ -17,5 +17,8 @@
     "ai": "^3.2.33",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0 <22.0.0"
   }
 }
